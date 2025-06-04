@@ -51,21 +51,12 @@ public class OpenAIClient {
         }
     }
     
-    public func fetchCosts(parameters: CostQueryParameters, debug: Bool = false) async throws -> CostResponse {
+    public func fetchCosts(parameters: CostQueryParameters) async throws -> CostResponse {
         let url = try buildURL(for: "organization/costs", parameters: parameters)
         let request = try buildRequest(for: url)
         
         do {
             let (data, response) = try await session.data(for: request)
-            
-            if debug {
-                print("[DEBUG] Raw JSON received for parameters: \(parameters.queryItems())")
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print(jsonString)
-                } else {
-                    print("[DEBUG] Could not convert data to UTF-8 string.")
-                }
-            }
             
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw OpenAIClientError.invalidResponse
@@ -82,40 +73,22 @@ public class OpenAIClient {
             throw error
         } catch {
             if error is DecodingError {
-                if debug { print("[DEBUG] Decoding error details: \(error)") }
                 throw OpenAIClientError.decodingError(error)
             } else {
-                if debug { print("[DEBUG] Network error details: \(error)") }
                 throw OpenAIClientError.networkError(error)
             }
         }
     }
     
-    public func fetchAllCosts(parameters: CostQueryParameters, debug: Bool = false) async throws -> [CostResponse.CostBucket] {
+    public func fetchAllCosts(parameters: CostQueryParameters) async throws -> [CostResponse.CostBucket] {
         var allBuckets: [CostResponse.CostBucket] = []
         var currentParameters = parameters
-        var pageCount = 1
         
         repeat {
-            if debug {
-                var debugMsg = "[DEBUG] Fetching page \(pageCount)"
-                if let page = currentParameters.page {
-                    debugMsg += " (page cursor: \(page))"
-                }
-                debugMsg += ", start_time: \(Int(currentParameters.startTime.timeIntervalSince1970))"
-                if let endTime = currentParameters.endTime {
-                    debugMsg += ", end_time: \(Int(endTime.timeIntervalSince1970))"
-                }
-                if let limit = currentParameters.limit {
-                    debugMsg += ", limit: \(limit)"
-                }
-                print(debugMsg)
-            }
-            let response = try await fetchCosts(parameters: currentParameters, debug: debug)
+            let response = try await fetchCosts(parameters: currentParameters)
             allBuckets.append(contentsOf: response.data)
             
             if response.hasMore, let nextPage = response.nextPage {
-                // Create new parameters with the next page
                 currentParameters = CostQueryParameters(
                     startTime: parameters.startTime,
                     bucketWidth: parameters.bucketWidth,
@@ -125,7 +98,6 @@ public class OpenAIClient {
                     page: nextPage,
                     projectIds: parameters.projectIds
                 )
-                pageCount += 1
             } else {
                 break
             }

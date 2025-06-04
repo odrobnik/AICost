@@ -103,4 +103,17 @@ public struct CostQueryParameters {
         
         return items
     }
+}
+
+// MARK: - Error Response Model
+
+public struct OpenAIAPIErrorResponse: Codable {
+    public let error: OpenAIErrorDetail
+}
+
+public struct OpenAIErrorDetail: Codable {
+    public let message: String
+    public let type: String
+    public let param: String?
+    public let code: String?
 } 

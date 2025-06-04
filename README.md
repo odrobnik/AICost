@@ -5,7 +5,7 @@ A Swift command-line tool for querying OpenAI usage costs using the [OpenAI Cost
 ## Features
 
 - ✅ Query OpenAI organization costs
-- ✅ Automatic pagination support
+- ✅ Automatically fetches all available data (all pages)
 - ✅ Flexible date input (Unix timestamps or days ago)
 - ✅ JSON and formatted output
 - ✅ Filter by project IDs and line items
@@ -34,7 +34,7 @@ A Swift command-line tool for querying OpenAI usage costs using the [OpenAI Cost
    swift build -c release
    ```
 
-3. Copy the executable to your PATH:
+3. Copy the executable to your PATH (optional):
    ```bash
    cp .build/release/openai-cost /usr/local/bin/
    ```
@@ -53,9 +53,10 @@ You can add this to your shell profile (`.bashrc`, `.zshrc`, etc.) to make it pe
 
 ### Basic Usage
 
-Get costs for the last 7 days:
+Get costs for the last 7 days (all data will be fetched, bucket width is fixed to `1d`):
 ```bash
 openai-cost --start-time 7
+# or from the build directory: .build/release/openai-cost --start-time 7
 ```
 
 Get costs for a specific Unix timestamp:
@@ -70,8 +71,6 @@ Get costs with specific parameters:
 openai-cost \
   --start-time 7 \
   --end-time 1730505600 \
-  --limit 10 \
-  --bucket-width 1d \
   --verbose
 ```
 
@@ -85,11 +84,6 @@ Group by fields:
 openai-cost --start-time 7 --group-by "project_id,line_item"
 ```
 
-Fetch all pages automatically:
-```bash
-openai-cost --start-time 30 --fetch-all
-```
-
 Output as JSON:
 ```bash
 openai-cost --start-time 7 --json
@@ -101,22 +95,21 @@ openai-cost --start-time 7 --json
 |--------|-------|-------------|
 | `--start-time` | `-s` | Start time as Unix timestamp or days ago (required) |
 | `--end-time` | `-e` | End time as Unix timestamp (optional) |
-| `--bucket-width` | `-b` | Bucket width (default: 1d) |
-| `--limit` | `-l` | Maximum buckets per page (1-180, default: 7) |
-| `--group-by` | | Group by fields: project_id, line_item (comma-separated) |
+| `--group-by` | | Group by fields: `project_id`, `line_item` (comma-separated) |
 | `--project-ids` | | Filter by project IDs (comma-separated) |
-| `--fetch-all` | | Fetch all pages automatically |
-| `--verbose` | | Show detailed output |
+| `--verbose` | | Show detailed output in formatted mode |
 | `--json` | | Output as JSON |
 | `--help` | `-h` | Show help |
 
+(Note: `bucket_width` is fixed to `1d` as it's the only value supported by the API endpoint used.)
+
 ## API Response Structure
 
-The tool handles the following OpenAI API response structure:
+The tool handles the following OpenAI API response structure (when outputting as JSON, `has_more` will be `false` and `next_page` will be `null` as all data is fetched):
 
 ```json
 {
-  "object": "page",
+  "object": "page", 
   "data": [
     {
       "object": "bucket",
@@ -153,13 +146,14 @@ swift test
 ```
 OpenAICost/
 ├── Package.swift
+├── README.md
 ├── Sources/
 │   ├── OpenAICost/
 │   │   ├── Models.swift          # Data models
 │   │   ├── OpenAIClient.swift    # API client
 │   │   └── Extensions.swift      # Utility extensions
 │   └── OpenAICostCLI/
-│       └── main.swift            # CLI interface
+│       └── OpenAICostCLI.swift   # CLI interface
 └── Tests/
     └── OpenAICostTests/
         └── OpenAICostTests.swift
@@ -167,11 +161,12 @@ OpenAICost/
 
 ### Key Features
 
-- **Automatic Snake Case Conversion**: Uses `JSONDecoder.keyDecodingStrategy = .convertFromSnakeCase`
-- **Date Handling**: Unix timestamps automatically converted to `Date` objects
-- **Pagination**: Automatic handling of paginated responses with `--fetch-all`
-- **Error Handling**: Comprehensive error handling with descriptive messages
-- **Async/Await**: Modern Swift concurrency throughout
+- **Automatic Data Fetching**: Fetches all available pages of data from the API.
+- **Fixed Bucket Width**: Uses `1d` for `bucket_width` as it's the only value supported by the API endpoint.
+- **Automatic Snake Case Conversion**: Uses `JSONDecoder.keyDecodingStrategy = .convertFromSnakeCase`.
+- **Date Handling**: Unix timestamps automatically converted to `Date` objects.
+- **Error Handling**: Comprehensive error handling with descriptive messages.
+- **Async/Await**: Modern Swift concurrency throughout.
 
 ## Examples
 
@@ -180,7 +175,7 @@ OpenAICost/
 openai-cost --start-time 7 --verbose
 ```
 
-Output:
+Output (example):
 ```
 OpenAI Cost Report
 ==================
@@ -191,10 +186,9 @@ Time Buckets: 7
 Bucket 1:
   Period: Nov 1, 2024 at 12:00 AM - Nov 2, 2024 at 12:00 AM
   Cost: $0.1234 USD
+  Group Breakdown: (if grouping or multiple results)
+    - $0.1234 (line_item: null)
 
-Bucket 2:
-  Period: Nov 2, 2024 at 12:00 AM - Nov 3, 2024 at 12:00 AM
-  Cost: $0.2345 USD
 ...
 ```
 

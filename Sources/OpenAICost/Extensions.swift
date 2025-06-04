@@ -3,15 +3,6 @@ import Foundation
 // MARK: - Date Extensions
 
 public extension Date {
-    /// Convert Date to Unix timestamp (seconds since 1970)
-    var unixTimestamp: Int {
-        return Int(self.timeIntervalSince1970)
-    }
-    
-    /// Create Date from Unix timestamp
-    init(unixTimestamp: Int) {
-        self.init(timeIntervalSince1970: TimeInterval(unixTimestamp))
-    }
     
     /// Format date for display
     func formattedForDisplay() -> String {
@@ -19,15 +10,6 @@ public extension Date {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: self)
-    }
-}
-
-// MARK: - String Extensions
-
-public extension String {
-    /// Parse Unix timestamp from string
-    var unixTimestamp: Int? {
-        return Int(self)
     }
 }
 
