@@ -3,13 +3,6 @@ import XCTest
 
 final class OpenAICostTests: XCTestCase {
     
-    func testDateUnixTimestampConversion() {
-        let unixTimestamp = 1730419200
-        let date = Date(unixTimestamp: unixTimestamp)
-        
-        XCTAssertEqual(date.unixTimestamp, unixTimestamp)
-    }
-    
     func testCostQueryParametersQueryItems() {
         let startDate = Date(timeIntervalSince1970: 1730419200)
         let endDate = Date(timeIntervalSince1970: 1730505600)
@@ -58,8 +51,8 @@ final class OpenAICostTests: XCTestCase {
     func testCostBucketArrayTotalCost() {
         let bucket1 = CostResponse.CostBucket(
             object: "bucket",
-            startTime: Date(unixTimestamp: 1730419200),
-            endTime: Date(unixTimestamp: 1730505600),
+            startTime: Date(timeIntervalSince1970: 1730419200),
+            endTime: Date(timeIntervalSince1970: 1730505600),
             results: [
                 CostResponse.CostBucket.CostResult(
                     object: "organization.costs.result",
@@ -72,8 +65,8 @@ final class OpenAICostTests: XCTestCase {
         
         let bucket2 = CostResponse.CostBucket(
             object: "bucket",
-            startTime: Date(unixTimestamp: 1730505600),
-            endTime: Date(unixTimestamp: 1730592000),
+            startTime: Date(timeIntervalSince1970: 1730505600),
+            endTime: Date(timeIntervalSince1970: 1730592000),
             results: [
                 CostResponse.CostBucket.CostResult(
                     object: "organization.costs.result",
@@ -128,8 +121,8 @@ final class OpenAICostTests: XCTestCase {
         XCTAssertNil(response.nextPage)
         
         let bucket = response.data[0]
-        XCTAssertEqual(bucket.startTime.unixTimestamp, 1730419200)
-        XCTAssertEqual(bucket.endTime.unixTimestamp, 1730505600)
+        XCTAssertEqual(bucket.startTime.timeIntervalSince1970, 1730419200)
+        XCTAssertEqual(bucket.endTime.timeIntervalSince1970, 1730505600)
         XCTAssertEqual(bucket.results.count, 1)
         
         let result = bucket.results[0]

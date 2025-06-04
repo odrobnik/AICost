@@ -93,7 +93,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
             let buckets = try await client.fetchAllCosts(parameters: parameters)
             displayResults(buckets: buckets, hasMore: false, nextPage: nil)
         } catch {
-            print("Error: \(error.localizedDescription)", to: &Self.standardError)
+            print("\(error.localizedDescription)", to: &Self.standardError)
             throw ExitCode.failure
         }
     }

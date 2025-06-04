@@ -34,7 +34,7 @@ public struct CostResponse: Codable {
                 public let currency: String
             }
         }
-
+        
     }
 }
 
@@ -107,13 +107,14 @@ public struct CostQueryParameters {
 
 // MARK: - Error Response Model
 
-public struct OpenAIAPIErrorResponse: Codable {
-    public let error: OpenAIErrorDetail
-}
+// REMOVE OpenAIAPIErrorResponse and OpenAIErrorDetail
+// public struct OpenAIAPIErrorResponse: Codable {
+//     public let error: OpenAIErrorDetail
+// }
 
-public struct OpenAIErrorDetail: Codable {
-    public let message: String
-    public let type: String
-    public let param: String?
-    public let code: String?
-} 
+// public struct OpenAIErrorDetail: Codable {
+//     public let message: String
+//     public let type: String
+//     public let param: String?
+//     public let code: String?
+// } 
