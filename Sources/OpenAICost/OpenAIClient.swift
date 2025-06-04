@@ -1,12 +1,14 @@
 import Foundation
 
 public class OpenAIClient {
+    private let apiKey: String
     internal let session: URLSession
     internal let decoder: JSONDecoder
     internal let baseURL = "https://api.openai.com/v1"
 
-    public init() {
-        self.session = URLSession.shared
+    public init(apiKey: String, session: URLSession = URLSession.shared) {
+        self.apiKey = apiKey
+        self.session = session
         self.decoder = JSONDecoder()
 
         // Configure decoder for snake_case to camelCase conversion
@@ -14,15 +16,6 @@ public class OpenAIClient {
 
         // Configure decoder for Unix timestamp to Date conversion
         self.decoder.dateDecodingStrategy = .secondsSince1970
-    }
-
-    internal var apiKey: String {
-        get throws {
-        guard let key = ProcessInfo.processInfo.environment["OPENAI_ADMIN_KEY"] else {
-            throw OpenAIClientError.invalidRequest("Missing API key. Set OPENAI_ADMIN_KEY environment variable.")
-        }
-        return key
-    }
     }
 
     public func fetchCosts(parameters: CostQueryParameters) async throws -> CostResponse {
@@ -102,7 +95,7 @@ public class OpenAIClient {
     internal func buildRequest(for url: URL) throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue("Bearer \(try apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(self.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         return request
     }
