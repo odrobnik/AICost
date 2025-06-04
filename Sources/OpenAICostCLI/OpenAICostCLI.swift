@@ -35,7 +35,12 @@ struct OpenAICostCLI: AsyncParsableCommand {
     }
 
     func run() async throws {
-        let client = OpenAIClient()
+        // Retrieve API Key from environment variable
+        guard let apiKey = ProcessInfo.processInfo.environment["OPENAI_ADMIN_KEY"] else {
+            throw ValidationError("Missing API key. Set OPENAI_ADMIN_KEY environment variable.")
+        }
+        
+        let client = OpenAIClient(apiKey: apiKey)
 
         let startTimeDate: Date
         if let daysAgo = Int(startTime) {
