@@ -10,7 +10,7 @@ import Foundation
 // MARK: - Date Extensions
 
 public extension Date {
-    
+
     /// Format date for display
     func formattedForDisplay() -> String {
         let formatter = DateFormatter()

@@ -11,7 +11,7 @@ public enum OpenAIClientError: Error, LocalizedError {
     case otherError(String, String) // Typically (type/statusCode, message)
     case decodingError(String) // For issues decoding the primary Codable models
     case networkError(String)  // For underlying URLSession errors
-    
+
     // New Initializer taking a decoded ErrorResponse
     public init(errorResponse: ErrorResponse) {
         switch errorResponse.error.type {
@@ -27,7 +27,7 @@ public enum OpenAIClientError: Error, LocalizedError {
                 self = .otherError(errorResponse.error.type, errorResponse.error.message)
         }
     }
-    
+
     // Modified Initializer from HTTP response data - now calls the one above
     public init(data: Data, response: HTTPURLResponse, decoder: JSONDecoder) {
         do {
@@ -39,7 +39,7 @@ public enum OpenAIClientError: Error, LocalizedError {
             self = .otherError("\(response.statusCode)", rawString)
         }
     }
-    
+
     public var errorDescription: String? {
         switch self {
             case .invalidResponse:
@@ -60,7 +60,7 @@ public enum OpenAIClientError: Error, LocalizedError {
                 return "Network Error: \(message)"
         }
     }
-    
+
     public var failureReason: String? {
         switch self {
             case .invalidResponse:
@@ -76,7 +76,7 @@ public enum OpenAIClientError: Error, LocalizedError {
                 return message
         }
     }
-    
+
     // 'type' might be less directly applicable if we use 'otherError' for status codes
     // but keeping a similar structure.
     public var type: String {
