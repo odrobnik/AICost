@@ -4,7 +4,7 @@ public enum OpenAIClientError: Error, LocalizedError {
     case invalidURL
     case missingAPIKey
     case invalidResponse
-    case httpError(statusCode: Int, data: Data?)
+    case httpError(statusCode: Int, errorDetail: OpenAIErrorDetail?, rawData: Data?)
     case decodingError(Error)
     case networkError(Error)
     
@@ -16,8 +16,20 @@ public enum OpenAIClientError: Error, LocalizedError {
             return "Missing API key. Set OPENAI_ADMIN_KEY environment variable"
         case .invalidResponse:
             return "Invalid response from server"
-        case .httpError(let statusCode, _):
-            return "HTTP error with status code: \(statusCode)"
+        case .httpError(let statusCode, let errorDetail, _):
+            if let detail = errorDetail {
+                var message = "HTTP error \(statusCode): \(detail.message) (Type: \(detail.type)"
+                if let code = detail.code {
+                    message += ", Code: \(code)"
+                }
+                if let param = detail.param {
+                    message += ", Param: \(param)"
+                }
+                message += ")"
+                return message
+            } else {
+                return "HTTP error with status code: \(statusCode)"
+            }
         case .decodingError(let error):
             return "Failed to decode response: \(error.localizedDescription)"
         case .networkError(let error):
@@ -62,16 +74,27 @@ public class OpenAIClient {
                 throw OpenAIClientError.invalidResponse
             }
             
-            guard 200...299 ~= httpResponse.statusCode else {
-                throw OpenAIClientError.httpError(statusCode: httpResponse.statusCode, data: data)
+            if !(200...299).contains(httpResponse.statusCode) {
+                // 'data' is the response body from the server for the error.
+                // Attempt to parse it as an OpenAI specific error JSON.
+                do {
+                    let errorResponse = try decoder.decode(OpenAIAPIErrorResponse.self, from: data)
+                    throw OpenAIClientError.httpError(statusCode: httpResponse.statusCode, errorDetail: errorResponse.error, rawData: data)
+                } catch {
+                    // Decoding of OpenAIAPIErrorResponse failed (e.g., data was empty, not JSON, or different structure).
+                    // Fallback to generic HTTP error with raw data.
+                    throw OpenAIClientError.httpError(statusCode: httpResponse.statusCode, errorDetail: nil, rawData: data)
+                }
             }
             
+            // Successful response, proceed to decode CostResponse
             let costResponse = try decoder.decode(CostResponse.self, from: data)
             return costResponse
             
         } catch let error as OpenAIClientError {
-            throw error
+            throw error // Re-throw if it's already an OpenAIClientError (like the ones thrown above)
         } catch {
+            // Catch other errors (e.g., network issues not caught as HTTPError, or other decoding issues)
             if error is DecodingError {
                 throw OpenAIClientError.decodingError(error)
             } else {
