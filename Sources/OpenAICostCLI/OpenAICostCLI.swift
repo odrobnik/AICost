@@ -2,12 +2,6 @@ import ArgumentParser
 import Foundation
 import OpenAICost
 
-extension FileHandle: @retroactive TextOutputStream {
-    public func write(_ string: String) {
-        self.write(Data(string.utf8))
-    }
-}
-
 @main
 struct OpenAICostCLI: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -16,7 +10,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
         version: "1.0.0"
     )
     
-    private static var standardError = FileHandle.standardError
+    internal static var standardError = FileHandle.standardError
     
     @Option(name: .shortAndLong, help: "Start time as Unix timestamp or days ago (e.g., 7 for 7 days ago)")
     var startTime: String
@@ -36,7 +30,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
     @Flag(name: .long, help: "Output as JSON")
     var json: Bool = false
     
-    private var isGrouping: Bool {
+    internal var isGrouping: Bool {
         return groupBy != nil && !groupBy!.trimmingCharacters(in: .whitespaces).isEmpty
     }
     
@@ -98,7 +92,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
         }
     }
     
-    private func displayResults(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
+    internal func displayResults(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
         if json {
             displayJSON(buckets: buckets, hasMore: false, nextPage: nil)
         } else {
@@ -106,7 +100,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
         }
     }
     
-    private func displayJSON(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
+    internal func displayJSON(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
         let response = CostResponse(
             object: "page", 
             data: buckets,
@@ -129,7 +123,7 @@ struct OpenAICostCLI: AsyncParsableCommand {
         }
     }
     
-    private func displayFormatted(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
+    internal func displayFormatted(buckets: [CostResponse.CostBucket], hasMore: Bool, nextPage: String?) {
         print("OpenAI Cost Report")
         print("==================")
         print()
@@ -210,4 +204,4 @@ struct OpenAICostCLI: AsyncParsableCommand {
             print()
         }
     }
-} 
+}

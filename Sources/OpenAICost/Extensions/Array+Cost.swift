@@ -1,18 +1,5 @@
 import Foundation
 
-// MARK: - Date Extensions
-
-public extension Date {
-    
-    /// Format date for display
-    func formattedForDisplay() -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: self)
-    }
-}
-
 // MARK: - Array Extensions
 
 public extension Array where Element == CostResponse.CostBucket.CostResult {

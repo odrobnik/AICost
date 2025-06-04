@@ -1,9 +1,9 @@
 import Foundation
 
 public class OpenAIClient {
-    private let session: URLSession
-    private let decoder: JSONDecoder
-    private let baseURL = "https://api.openai.com/v1"
+    internal let session: URLSession
+    internal let decoder: JSONDecoder
+    internal let baseURL = "https://api.openai.com/v1"
     
     public init() {
         self.session = URLSession.shared
@@ -16,7 +16,7 @@ public class OpenAIClient {
         self.decoder.dateDecodingStrategy = .secondsSince1970
     }
     
-    private var apiKey: String {
+    internal var apiKey: String {
         get throws {
             guard let key = ProcessInfo.processInfo.environment["OPENAI_ADMIN_KEY"] else {
                 throw OpenAIClientError.invalidRequest("Missing API key. Set OPENAI_ADMIN_KEY environment variable.")
@@ -85,7 +85,7 @@ public class OpenAIClient {
         return allBuckets
     }
     
-    private func buildURL(for endpoint: String, parameters: CostQueryParameters) throws -> URL {
+    internal func buildURL(for endpoint: String, parameters: CostQueryParameters) throws -> URL {
         guard var urlComponents = URLComponents(string: "\(baseURL)/\(endpoint)") else {
             throw OpenAIClientError.invalidRequest("Invalid base URL for URLComponents: \(baseURL)/\(endpoint)")
         }
@@ -99,11 +99,11 @@ public class OpenAIClient {
         return url
     }
     
-    private func buildRequest(for url: URL) throws -> URLRequest {
+    internal func buildRequest(for url: URL) throws -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(try apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         return request
     }
-} 
+}
